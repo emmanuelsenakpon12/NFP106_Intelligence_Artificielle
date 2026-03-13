@@ -1,30 +1,30 @@
-# README — Algorithmes de Recherche dans un Labyrinthe
+# README - Algorithmes de Recherche dans un Labyrinthe
 
 Ce projet implémente et compare trois algorithmes de recherche de chemin sur un labyrinthe en Python avec Pygame : **BFS** (Recherche en Largeur), **DFS** (Recherche en Profondeur) et **UCS** (Recherche à Coût Uniforme). Les réponses ci-dessous s'appuient sur les observations faites en exécutant les trois visualisations.
 
 ---
 
-## Question 1 — Quelle recherche trouve la solution le plus rapidement ?
+## Question 1 - Quelle recherche trouve la solution le plus rapidement ?
 
 En pratique sur ce labyrinthe, c'est **UCS avec le g-score de Manhattan (Version 3)** qui trouve la sortie le plus vite. On le voit clairement dans la visualisation : le pingouin se dirige presque en ligne droite vers l'arrivée, sans trop s'éparpiller sur les côtés.
 
-Le **DFS** peut parfois surprendre en trouvant la sortie très rapidement lui aussi — mais c'est une question de chance. Si la première branche qu'il explore pointe dans la bonne direction, il fonce. Si ce n'est pas le cas, il peut errer longtemps dans une mauvaise partie du labyrinthe avant de revenir.
+Le **DFS** peut parfois surprendre en trouvant la sortie très rapidement lui aussi - mais c'est une question de chance. Si la première branche qu'il explore pointe dans la bonne direction, il fonce. Si ce n'est pas le cas, il peut errer longtemps dans une mauvaise partie du labyrinthe avant de revenir.
 
 Le **BFS** est plus régulier mais plus lent visuellement : on le voit "gonfler" depuis le départ en cercles concentriques, visitant beaucoup de cases avant d'atteindre la sortie.
 
-Quant à **UCS V1** (coûts aléatoires), c'est clairement le plus lent des quatre. Puisque les coûts ne sont pas liés à la position des cases, l'algorithme n'a aucune raison de préférer les cases proches de la sortie — il explore un peu partout.
+Quant à **UCS V1** (coûts aléatoires), c'est clairement le plus lent des quatre. Puisque les coûts ne sont pas liés à la position des cases, l'algorithme n'a aucune raison de préférer les cases proches de la sortie - il explore un peu partout.
 
 **Classement du plus rapide au plus lent :**
-1. UCS V3 — Manhattan *(très dirigé vers la sortie)*
+1. UCS V3 - Manhattan *(très dirigé vers la sortie)*
 2. DFS *(rapide si la topologie du labyrinthe est favorable, sinon dernier)*
 3. BFS *(régulier mais exhaustif)*
-4. UCS V1 — coûts aléatoires *(exploration quasi totale du labyrinthe)*
+4. UCS V1 - coûts aléatoires *(exploration quasi totale du labyrinthe)*
 
 ---
 
-## Question 2 — Avantages et inconvénients de chaque recherche
+## Question 2 - Avantages et inconvénients de chaque recherche
 
-### BFS — Recherche en Largeur
+### BFS - Recherche en Largeur
 
 BFS explore le labyrinthe couche par couche à partir du départ. C'est l'algorithme le plus "juste" des trois pour trouver le chemin le plus court.
 
@@ -36,17 +36,17 @@ BFS explore le labyrinthe couche par couche à partir du départ. C'est l'algori
 **Inconvénients :**
 - Il utilise beaucoup de mémoire, car il stocke en même temps toute la "frontière" (toutes les cases à explorer).
 - Sur un grand labyrinthe, il visite énormément de cases avant d'arriver à la sortie, ce qui le rend lent visuellement.
-- Il ne tient pas compte des coûts de déplacement — toutes les cases sont traitées de façon égale.
+- Il ne tient pas compte des coûts de déplacement - toutes les cases sont traitées de façon égale.
 
 ---
 
-### DFS — Recherche en Profondeur
+### DFS - Recherche en Profondeur
 
 DFS plonge dans une direction jusqu'au bout, puis revient en arrière si ça ne mène nulle part (backtracking). C'est l'algorithme qui ressemble le plus à la façon dont un humain explore un labyrinthe à l'aveugle.
 
 **Avantages :**
 - Il consomme très peu de mémoire : il ne stocke que le chemin actuel, pas toute la frontière.
-- Dans le meilleur cas, il trouve la sortie extrêmement vite — si la première branche explorée est la bonne.
+- Dans le meilleur cas, il trouve la sortie extrêmement vite - si la première branche explorée est la bonne.
 - Simple à implémenter, naturellement adapté aux structures de type arbre.
 
 **Inconvénients :**
@@ -56,11 +56,11 @@ DFS plonge dans une direction jusqu'au bout, puis revient en arrière si ça ne 
 
 ---
 
-### UCS — Recherche à Coût Uniforme
+### UCS - Recherche à Coût Uniforme
 
 UCS utilise une file de priorité pour toujours explorer en premier la case dont le coût cumulé depuis le départ est le plus faible. C'est fondamentalement l'algorithme de Dijkstra.
 
-**Version 1 — coûts aléatoires**
+**Version 1 - coûts aléatoires**
 
 **Avantages :**
 - Garantit le chemin de coût minimal selon les coûts définis (utile si les cases ont vraiment des difficultés différentes, comme du terrain accidenté).
@@ -68,9 +68,9 @@ UCS utilise une file de priorité pour toujours explorer en premier la case dont
 
 **Inconvénients :**
 - Avec des coûts aléatoires, l'algorithme n'a aucune information sur la direction de l'arrivée.
-- Il explore potentiellement tout le labyrinthe avant de trouver la sortie — c'est le plus lent des quatre.
+- Il explore potentiellement tout le labyrinthe avant de trouver la sortie - c'est le plus lent des quatre.
 
-**Version 2 — coût = distance en colonnes à l'arrivée**
+**Version 2 - coût = distance en colonnes à l'arrivée**
 
 **Avantages :**
 - Déjà beaucoup mieux que V1 : l'exploration se dirige horizontalement vers la sortie.
@@ -79,7 +79,7 @@ UCS utilise une file de priorité pour toujours explorer en premier la case dont
 **Inconvénients :**
 - Ignore complètement la dimension verticale. Si la sortie est sur une ligne très différente, l'algorithme peut se retrouver bloqué à chercher sur la bonne colonne sans descendre/monter suffisamment.
 
-**Version 3 — coût = distance de Manhattan (recommandée)**
+**Version 3 - coût = distance de Manhattan (recommandée)**
 
 **Avantages :**
 - Guide l'exploration dans les deux dimensions à la fois (horizontale + verticale).
@@ -104,21 +104,21 @@ UCS utilise une file de priorité pour toujours explorer en premier la case dont
 
 ---
 
-## Question 3 — Une recherche non informée plus optimale ?
+## Question 3 - Une recherche non informée plus optimale ?
 
 Parmi les recherches non informées (sans connaissance de la position de l'arrivée), la plus efficace pour un labyrinthe serait le **BFS bidirectionnel**.
 
 ### Principe
 
-L'idée est simple : au lieu de lancer un seul BFS depuis le départ, on en lance **deux en parallèle** — un depuis le départ S, et un autre depuis l'arrivée E. On alterne une étape de chaque côté à chaque itération. L'algorithme s'arrête dès que les deux frontières se rencontrent sur un nœud commun. Le chemin final est alors la concaténation du chemin S → nœud commun et du chemin E → nœud commun (inversé).
+L'idée est simple : au lieu de lancer un seul BFS depuis le départ, on en lance **deux en parallèle** - un depuis le départ S, et un autre depuis l'arrivée E. On alterne une étape de chaque côté à chaque itération. L'algorithme s'arrête dès que les deux frontières se rencontrent sur un nœud commun. Le chemin final est alors la concaténation du chemin S → nœud commun et du chemin E → nœud commun (inversé).
 
 ### Pourquoi est-ce plus efficace ?
 
 Le BFS classique explore un "disque" autour du départ dont le rayon grandit jusqu'à atteindre la sortie. Si la solution est à une profondeur `d`, il explore environ `b^d` nœuds (avec `b` le nombre moyen de voisins par case).
 
-Le BFS bidirectionnel explore deux disques de rayon `d/2` chacun. Cela donne `2 × b^(d/2)` nœuds — soit une **réduction exponentielle** par rapport au BFS classique.
+Le BFS bidirectionnel explore deux disques de rayon `d/2` chacun. Cela donne `2 × b^(d/2)` nœuds - soit une **réduction exponentielle** par rapport au BFS classique.
 
-**Exemple concret sur ce labyrinthe :** si la sortie est à 30 cases, BFS classique peut explorer jusqu'à `4^30` nœuds dans le pire cas. BFS bidirectionnel n'en explore que `2 × 4^15` — environ **32 000 fois moins**.
+**Exemple concret sur ce labyrinthe :** si la sortie est à 30 cases, BFS classique peut explorer jusqu'à `4^30` nœuds dans le pire cas. BFS bidirectionnel n'en explore que `2 × 4^15` - environ **32 000 fois moins**.
 
 ### Ce qu'il conserve
 
@@ -128,7 +128,7 @@ Le BFS bidirectionnel explore deux disques de rayon `d/2` chacun. Cela donne `2 
 
 ### Petite contrainte
 
-Il faut connaître le nœud d'arrivée à l'avance pour lancer le BFS depuis E — ce qui est toujours le cas dans notre labyrinthe puisque la case `E` est fixe et connue dès le départ.
+Il faut connaître le nœud d'arrivée à l'avance pour lancer le BFS depuis E - ce qui est toujours le cas dans notre labyrinthe puisque la case `E` est fixe et connue dès le départ.
 
 ---
 
