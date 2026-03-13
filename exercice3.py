@@ -55,6 +55,14 @@ IMPORTANT (pédagogie) :
 - UCS renvoie un chemin OPTIMAL en coût (pas forcément en nombre de pas).
 """
 
+# ============================================================
+# CHOIX DE LA VERSION DU G-SCORE (modifier ici pour changer)
+# ============================================================
+# 1 → coûts aléatoires (seed=42)           — premier temps
+# 2 → distance en colonnes à l'arrivée     — second temps
+# 3 → distance de Manhattan à l'arrivée    — g-score cohérent
+VERSION_GSCORE = 2
+
 LABYRINTHE = [
     "#######################",
     "#S#.......#...........#",
@@ -579,30 +587,65 @@ def ucs_faire_une_etape(grille, etat, arrivee, couts):
         if nxt in visite:
             continue
 
-        # Coût pour entrer dans la case nxt depuis le nœud courant.
-        # On modélise le coût d'ENTRÉE : on paie pour "entrer" dans nxt.
+        # ═══════════════════════════════════════════════════════════════
+        # CALCUL DU G-SCORE : 3 VERSIONS SELON VERSION_GSCORE (en haut)
+        # ═══════════════════════════════════════════════════════════════
         #
-        # ═══════════════════════════════════════════════════════════
-        # VERSION 1 : G-SCORE ALÉATOIRE (demandée en premier temps)
-        # ═══════════════════════════════════════════════════════════
-        # Les coûts de chaque case sont tirés aléatoirement (seed=42)
-        # à l'initialisation de l'application (self.couts).
-        # UCS va quand même trouver le chemin OPTIMAL selon ces coûts
-        # aléatoires — mais le chemin ne sera pas forcément le plus court
-        # en nombre de cases.
+        # Le g-score est le coût cumulé pour atteindre 'nxt' depuis le départ.
+        # Sa formule détermine QUELLES cases UCS privilégie lors de l'exploration.
         #
-        # VERSION 2 : G-SCORE = NOMBRE DE COLONNES SÉPARANT DE L'ARRIVÉE
-        # (demandée en second temps, à implémenter dans cout_case ou ici)
-        # Exemple : new_g = gcur + abs(nxt[1] - arrivee[1]) + 1
+        # ───────────────────────────────────────────────────────────────
+        # VERSION 1 : coûts ALÉATOIRES (seed=42, générés à l'init)
+        # ───────────────────────────────────────────────────────────────
+        # Chaque case a un coût entre 1 et 9, tiré au hasard mais stable.
+        # UCS trouve le chemin optimal SELON CES COÛTS, qui ne correspond
+        # pas forcément au plus court en nombre de cases.
+        # Visuellement : UCS serpente vers les cases les moins coûteuses,
+        # l'exploration semble "désorganisée" car indifférente à la direction.
         #
-        # VERSION 3 : G-SCORE COHÉRENT (heuristique proposée)
-        # On utilise la distance de Manhattan comme coût de déplacement :
-        # Exemple : new_g = gcur + abs(nxt[0]-arrivee[0]) + abs(nxt[1]-arrivee[1])
-        # (Transforme UCS en Greedy ou A* selon la formulation)
+        # ───────────────────────────────────────────────────────────────
+        # VERSION 2 : coût = DISTANCE EN COLONNES à l'arrivée
+        # ───────────────────────────────────────────────────────────────
+        # Le coût d'entrée dans nxt = nombre de colonnes qui le séparent
+        # de l'arrivée + 1 (le +1 évite un coût nul quand nxt est sur la
+        # même colonne que l'arrivée).
+        # Formule : abs(nxt_c - arrivee_c) + 1
+        # Effet : UCS privilégie les cases proches de la colonne de sortie,
+        # l'exploration "tire" horizontalement vers l'arrivée.
+        # Limite : ignore la distance verticale, donc pas encore très efficace.
         #
-        # Ici on utilise la VERSION 1 (coûts aléatoires via le dict couts)
-        # conformément à la consigne initiale.
-        new_g = gcur + cout_case(couts, nxt)
+        # ───────────────────────────────────────────────────────────────
+        # VERSION 3 : coût = DISTANCE DE MANHATTAN à l'arrivée (optimal)
+        # ───────────────────────────────────────────────────────────────
+        # Manhattan = |Δr| + |Δc| = somme des distances horizontale et verticale.
+        # C'est la distance naturelle sur une grille (pas de diagonales).
+        # Formule : abs(nxt_r - arrivee_r) + abs(nxt_c - arrivee_c) + 1
+        # Effet : UCS guide fortement l'exploration vers l'arrivée dans les
+        # deux dimensions. Le résultat ressemble à A* avec heuristique Manhattan.
+        # C'est la version la plus "intelligente" et la plus efficace des trois.
+        # ───────────────────────────────────────────────────────────────
+
+        ar, ac = arrivee  # coordonnées de l'arrivée (ligne, colonne)
+        nr, nc = nxt      # coordonnées du voisin candidat
+
+        if VERSION_GSCORE == 1:
+            # Coût aléatoire pré-calculé dans self.couts (seed=42)
+            # UCS optimal sur ces coûts, mais exploration "aveugle" à la direction
+            cout_entree = cout_case(couts, nxt)
+
+        elif VERSION_GSCORE == 2:
+            # Coût proportionnel à la distance horizontale (colonnes) à l'arrivée
+            # +1 pour garantir un coût strictement positif (requis par UCS/Dijkstra)
+            cout_entree = abs(nc - ac) + 1
+
+        else:  # VERSION_GSCORE == 3
+            # Coût = distance de Manhattan entre nxt et l'arrivée
+            # Combine distance horizontale ET verticale → guidage optimal
+            # +1 pour garantir un coût > 0 même si nxt == arrivee
+            cout_entree = abs(nr - ar) + abs(nc - ac) + 1
+
+        # g-score de nxt via le nœud courant = g du courant + coût pour entrer dans nxt
+        new_g = gcur + cout_entree
 
         # On met à jour SEULEMENT si on a trouvé un chemin moins coûteux.
         # float("inf") est la valeur par défaut si nxt n'a pas encore de g-score.
